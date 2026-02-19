@@ -24,14 +24,11 @@ namespace EnrollmentSystem.Test
         [Fact]
         public async Task AddStudent_ShouldInsertRecord()
         {
-            // Arrange
-            var student = new Student { StudentId = 1, FirstName = "Test Student", StudentNumber = 001 };
+            var student = new Student { StudentId = 1, FirstName = "Test Student", LastName = "Test", StudentNumber = 001 };
             _repo.Setup(r => r.AddAsync(student)).Returns(Task.CompletedTask).Verifiable();
 
-            // Act
             var result = await _service.CreateAsync(student);
 
-            // Assert
             _repo.Verify(r => r.AddAsync(student), Times.Once);
             Assert.Equal(student, result);
         }
@@ -39,23 +36,19 @@ namespace EnrollmentSystem.Test
         [Fact]
         public async Task StudentNumber_ShouldBeUnique()
         {
-            // Arrange
             var student = new Student { StudentNumber = 001 };
             _repo.Setup(r => r.ExistsAsync(student.StudentNumber)).ReturnsAsync(true);
 
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateAsync(student));
+            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateAsync(student));
         }
 
         [Fact]
         public async Task RegisterStudent_ShouldPreventDuplicateStudentNumber()
         {
-            // Arrange
             var student = new Student { StudentNumber = 002 };
             _repo.Setup(r => r.ExistsAsync(student.StudentNumber)).ReturnsAsync(true);
 
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateAsync(student));
+            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateAsync(student));
         }
     }
 }

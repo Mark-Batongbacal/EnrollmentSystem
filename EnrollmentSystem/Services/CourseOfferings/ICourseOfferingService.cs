@@ -12,6 +12,6 @@ namespace EnrollmentSystem.Services.CourseOfferings
         // Business Rule Helpers
         Task<bool> IsFullAsync(int courseOfferingId);
         Task<bool> HasEnrollmentsAsync(int courseOfferingId);
-        Task<bool> IsWithinSemesterAsync(int courseOfferingId, DateTime date);
+        Task<bool> IsWithinSemesterAsync(int courseOfferingId, DateOnly date);
     }
 }

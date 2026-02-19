@@ -24,6 +24,12 @@ namespace EnrollmentSystem.Services.Students
 
         public async Task<Student> CreateAsync(Student student)
         {
+            if (string.IsNullOrWhiteSpace(student.FirstName) ||
+                string.IsNullOrWhiteSpace(student.LastName))
+            {
+                throw new ArgumentException("Student FirstName and Lastname are required.");
+            }
+
             student.DateCreated = DateOnly.FromDateTime(DateTime.UtcNow);
 
             if (_studentRepository.ExistsAsync(student.StudentNumber).Result)

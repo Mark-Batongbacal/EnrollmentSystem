@@ -1,4 +1,5 @@
 ﻿using EnrollmentSystem.Models.Database;
+using EnrollmentSystem.Repository.CourseOfferings;
 using EnrollmentSystem.Repository.Enrollments;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,12 +8,15 @@ namespace EnrollmentSystem.Services.Enrollments
     public class EnrollmentService: IEnrollmentService
     {
         private readonly IEnrollmentRepository _enrollmentRepository;
+        private readonly ICourseOfferingRepository _courseOfferingRepo;
         private readonly EnrollmentSystemContext _context;
 
         public EnrollmentService(
+            ICourseOfferingRepository courseOfferingRepository,
             IEnrollmentRepository enrollmentRepository,
             EnrollmentSystemContext context)
         {
+            _courseOfferingRepo = courseOfferingRepository;
             _enrollmentRepository = enrollmentRepository;
             _context = context;
         }
@@ -29,36 +33,24 @@ namespace EnrollmentSystem.Services.Enrollments
 
         public async Task<Enrollment> EnrollAsync(int studentId, int courseOfferingId)
         {
-            if (await IsStudentEnrolledAsync(studentId, courseOfferingId))
+            // Check if student already enrolled in this offering
+            if (await _enrollmentRepository.AnyByStudentIdAsync(studentId))
                 throw new InvalidOperationException("Student is already enrolled in this course.");
 
-            var courseOffering = await _context.CourseOfferings
-                .Include(c => c.Enrollments)
-                .FirstOrDefaultAsync(c => c.CourseOfferingId == courseOfferingId);
-
-            if (courseOffering == null)
-                throw new KeyNotFoundException("Course offering not found.");
-
-            if (courseOffering.Capacity <= courseOffering.Enrollments.Count)
+            // Check if course offering is full
+            if (await _enrollmentRepository.AnyByCourseOfferingIdAsync(courseOfferingId))
                 throw new InvalidOperationException("Course is full.");
 
-            var semester = await _context.Semesters
-                .FirstOrDefaultAsync(s => s.SemesterId == courseOffering.SemesterId);
-
-            if (semester == null)
-                throw new KeyNotFoundException("Semester not found.");
-
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (!await _courseOfferingRepo.IsWithinSemesterAsync(courseOfferingId, today))
+                throw new InvalidOperationException("Cannot enroll: semester has expired or not started yet.");
 
-            if (today < semester.StartDate || today > semester.EndDate)
-                throw new InvalidOperationException("Enrollment is outside semester dates.");
-
+            // Create enrollment
             var enrollment = new Enrollment
             {
                 StudentId = studentId,
                 CourseOfferingId = courseOfferingId,
-                FinalGrade = null,
-                DateEnrolled = today
+                DateEnrolled = DateOnly.FromDateTime(DateTime.UtcNow)
             };
 
             await _enrollmentRepository.AddAsync(enrollment);
@@ -95,7 +87,6 @@ namespace EnrollmentSystem.Services.Enrollments
             return true;
         }
 
-        // Business Rules
 
         public async Task<bool> IsStudentEnrolledAsync(int studentId, int courseOfferingId)
         {

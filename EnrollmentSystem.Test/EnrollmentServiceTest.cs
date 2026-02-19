@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EnrollmentSystem.Models.Database;
+using EnrollmentSystem.Repository.CourseOfferings;
 using EnrollmentSystem.Repository.Enrollments;
 using EnrollmentSystem.Services.Enrollments;
 using Moq;
@@ -12,23 +13,39 @@ namespace EnrollmentSystem.Test
     public class EnrollmentServiceTests
     {
         private readonly Mock<IEnrollmentRepository> _enrollmentRepo;
+        private readonly Mock<ICourseOfferingRepository> _courseOfferingRepo;
         private readonly Mock<EnrollmentSystemContext> _contextMock;
         private readonly EnrollmentService _service;
 
         public EnrollmentServiceTests()
         {
             _enrollmentRepo = new Mock<IEnrollmentRepository>();
-            _contextMock = new Mock<EnrollmentSystemContext>(); // Mock the DbContext
-            _service = new EnrollmentService(_enrollmentRepo.Object, _contextMock.Object);
+            _courseOfferingRepo = new Mock<ICourseOfferingRepository>();
+            _contextMock = new Mock<EnrollmentSystemContext>();
+
+            _service = new EnrollmentService( _courseOfferingRepo.Object, _enrollmentRepo.Object, _contextMock.Object);
         }
 
+
+        [Fact]
+        public async Task Enrollment_ShouldBeUnique_PerStudentOffering()
+        {
+            int studentId = 1;
+            int courseOfferingId = 1;
+
+            _enrollmentRepo.Setup(r => r.AnyByStudentIdAsync(studentId))
+                           .ReturnsAsync(true);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.EnrollAsync(studentId, courseOfferingId));
+        }
 
         [Fact]
         public async Task EnrollStudent_ShouldFail_WhenCourseIsFull()
         {
             var enrollment = new Enrollment { StudentId = 1, CourseOfferingId = 1 };
             _enrollmentRepo.Setup(r => r.AnyByCourseOfferingIdAsync(enrollment.CourseOfferingId))
-                .ReturnsAsync(true); // simulate full course
+                .ReturnsAsync(true); 
 
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _service.EnrollAsync(enrollment.StudentId, enrollment.CourseOfferingId));
@@ -49,9 +66,19 @@ namespace EnrollmentSystem.Test
         public async Task EnrollStudent_ShouldSucceed_WhenValid()
         {
             var enrollment = new Enrollment { StudentId = 1, CourseOfferingId = 1 };
-            _enrollmentRepo.Setup(r => r.AnyByStudentIdAsync(enrollment.StudentId)).ReturnsAsync(false);
-            _enrollmentRepo.Setup(r => r.AnyByCourseOfferingIdAsync(enrollment.CourseOfferingId)).ReturnsAsync(false);
-            _enrollmentRepo.Setup(r => r.AddAsync(It.IsAny<Enrollment>())).Returns(Task.CompletedTask).Verifiable();
+
+            _enrollmentRepo.Setup(r => r.AnyByStudentIdAsync(enrollment.StudentId))
+                           .ReturnsAsync(false);
+
+            _enrollmentRepo.Setup(r => r.AnyByCourseOfferingIdAsync(enrollment.CourseOfferingId))
+                           .ReturnsAsync(false);
+
+            _courseOfferingRepo.Setup(r => r.IsWithinSemesterAsync(enrollment.CourseOfferingId, It.IsAny<DateOnly>()))
+                               .ReturnsAsync(true);
+
+            _enrollmentRepo.Setup(r => r.AddAsync(It.IsAny<Enrollment>()))
+                           .Returns(Task.CompletedTask)
+                           .Verifiable();
 
             var result = await _service.EnrollAsync(enrollment.StudentId, enrollment.CourseOfferingId);
 
@@ -60,6 +87,7 @@ namespace EnrollmentSystem.Test
             Assert.Equal(enrollment.CourseOfferingId, result.CourseOfferingId);
         }
 
+
         [Fact]
         public async Task EnrollStudent_ShouldFail_WhenSemesterExpired()
         {
@@ -67,7 +95,6 @@ namespace EnrollmentSystem.Test
             _enrollmentRepo.Setup(r => r.AnyByStudentIdAsync(enrollment.StudentId)).ReturnsAsync(false);
             _enrollmentRepo.Setup(r => r.AnyByCourseOfferingIdAsync(enrollment.CourseOfferingId)).ReturnsAsync(false);
 
-            // Simulate service throwing for expired semester
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _service.EnrollAsync(enrollment.StudentId, enrollment.CourseOfferingId));
         }
@@ -103,34 +130,18 @@ namespace EnrollmentSystem.Test
             Assert.True(result);
             Assert.Equal(95, enrollment.FinalGrade);
         }
-        [Fact]
-        public async Task Enrollment_ShouldBeUnique_PerStudentOffering()
-        {
-            // Arrange
-            int studentId = 1;
-            int courseOfferingId = 1;
-
-            _enrollmentRepo.Setup(r => r.AnyByStudentIdAsync(studentId))
-                           .ReturnsAsync(true); // simulate already enrolled
-
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _service.EnrollAsync(studentId, courseOfferingId));
-        }
+        
 
         [Fact]
         public async Task DeleteCourse_ShouldReturnFalse_WhenEnrollmentsExist()
         {
-            // Arrange
             int courseOfferingId = 1;
 
             _enrollmentRepo.Setup(r => r.AnyByCourseOfferingIdAsync(courseOfferingId))
-                           .ReturnsAsync(true); // simulate enrollments exist
+                           .ReturnsAsync(true); 
 
-            // Act
             var canDelete = !await _enrollmentRepo.Object.AnyByCourseOfferingIdAsync(courseOfferingId);
 
-            // Assert
             Assert.False(canDelete);
         }
     }

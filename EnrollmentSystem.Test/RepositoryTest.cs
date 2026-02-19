@@ -7,6 +7,7 @@ using EnrollmentSystem.Repository.Enrollments;
 using EnrollmentSystem.Repository.Students;
 using Moq;
 using Xunit;
+using EnrollmentSystem.Services.Students;
 
 namespace EnrollmentSystem.Test
 {
@@ -15,47 +16,42 @@ namespace EnrollmentSystem.Test
         private readonly Mock<ICourseRepository> _courseRepo;
         private readonly Mock<IStudentRepository> _studentRepo;
         private readonly Mock<IEnrollmentRepository> _enrollmentRepo;
+        private readonly StudentService _studentService;
 
         public RepositoryTests()
         {
             _courseRepo = new Mock<ICourseRepository>();
             _studentRepo = new Mock<IStudentRepository>();
             _enrollmentRepo = new Mock<IEnrollmentRepository>();
+            _studentService = new StudentService(_studentRepo.Object);
         }
 
         [Fact]
         public async Task DeleteCourse_ShouldFail_WhenEnrollmentsExist()
         {
-            // Arrange
             var courseId = 1;
 
-            // Simulate course has enrollments
             _courseRepo.Setup(r => r.ExistsAsync(courseId))
                        .ReturnsAsync(true);
 
             var courseExists = await _courseRepo.Object.ExistsAsync(courseId);
 
-            // Act
-            var canDelete = !courseExists; // cannot delete if exists (simulating enrollments linked)
+            var canDelete = !courseExists; 
 
-            // Assert
             Assert.False(canDelete);
         }
 
         [Fact]
         public async Task UpdateCourse_ShouldPersistChanges()
         {
-            // Arrange
-            var course = new Course { CourseId = 1, CourseCode = "CS101"};
+            var course = new Course { CourseId = 1, CourseCode = "Elect1" };
 
             _courseRepo.Setup(r => r.Update(course))
                        .Returns(Task.CompletedTask)
                        .Verifiable();
 
-            // Act
             await _courseRepo.Object.Update(course);
 
-            // Assert
             _courseRepo.Verify(r => r.Update(course), Times.Once);
         }
 
@@ -79,32 +75,37 @@ namespace EnrollmentSystem.Test
         [Fact]
         public async Task CourseCode_ShouldBeUnique()
         {
-            // Arrange
             var existingCourses = new List<Course>
             {
-                new Course { CourseId = 1, CourseCode = "CS101" },
-                new Course { CourseId = 2, CourseCode = "CS102" }
+                new Course { CourseId = 1, CourseCode = "Elect1" },
+                new Course { CourseId = 2, CourseCode = "Elect2" }
             }.AsQueryable();
 
             _courseRepo.Setup(r => r.GetAllAsync())
                        .ReturnsAsync(existingCourses);
 
-            var newCourse = new Course { CourseId = 3, CourseCode = "CS101" }; // duplicate
+            var newCourse = new Course { CourseId = 3, CourseCode = "Elect1" };
 
-            // Act
             var allCourses = await _courseRepo.Object.GetAllAsync();
             var duplicate = allCourses.Any(c => c.CourseCode == newCourse.CourseCode);
 
-            // Assert
             Assert.True(duplicate);
         }
 
         [Fact]
-        public void RequiredFields_ShouldRejectNull()
+
+        public async Task RequiredFields_ShouldRejectNull()
         {
-            var student = new Student();
-            Assert.Null(student.FirstName);
-            Assert.Null(student.StudentNumber);
+            // Arrange
+            var student = new Student
+            {
+                FirstName = null
+            };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(async () =>
+                await _studentService.CreateAsync(student));
         }
+
     }
 }
