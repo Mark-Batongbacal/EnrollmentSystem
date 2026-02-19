@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnrollmentSystem.Repository.Enrollments
 {
-    public class EnrollmentRepository : IEnrollmentRepository
+    public class EnrollmentRepository 
     {
         private readonly EnrollmentSystemContext _context;
 
