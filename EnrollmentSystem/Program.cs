@@ -1,7 +1,19 @@
+using EnrollmentSystem.Models.Database;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Scaffold-DbContext "Server=EA611-07; Database=EnrollmentSystem; User ID=enrollment-system; password=12345678; 
+
+builder.Services.AddDbContext<EnrollmentSystemContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Connection"));
+});
+
+
 
 var app = builder.Build();
 
