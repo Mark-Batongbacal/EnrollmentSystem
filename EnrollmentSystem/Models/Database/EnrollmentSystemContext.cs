@@ -13,6 +13,7 @@ public partial class EnrollmentSystemContext : DbContext
     public EnrollmentSystemContext(DbContextOptions<EnrollmentSystemContext> options)
         : base(options)
     {
+        //"I was here"
     }
 
     public virtual DbSet<Course> Courses { get; set; }
