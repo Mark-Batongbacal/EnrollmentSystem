@@ -14,6 +14,10 @@ namespace EnrollmentSystem.Repository.CourseOfferings
         Task<bool> ExistsAsync(int id);
 
         Task<IEnumerable<CourseOffering>> GetByCourseIdAsync(int courseId);
+
+        Task<bool> ExistsAsync(int courseId, int semesterId);
+        Task<bool> IsFullAsync(int courseOfferingId);
+        Task<bool> IsWithinSemesterAsync(int courseOfferingId, DateTime date);
     }
 }
 

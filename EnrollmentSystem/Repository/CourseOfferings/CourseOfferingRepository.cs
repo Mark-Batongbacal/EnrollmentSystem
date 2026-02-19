@@ -51,5 +51,28 @@ namespace EnrollmentSystem.Repository.CourseOfferings
             _context.CourseOfferings.Update(offering);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<bool> ExistsAsync(int courseId, int semesterId)
+        {
+            return await _context.CourseOfferings
+                .AnyAsync(o => o.CourseId == courseId && o.SemesterId == semesterId);
+        }
+        public async Task<bool> IsFullAsync(int courseOfferingId)
+        {
+            var offering = await _context.CourseOfferings
+                .Include(o => o.Enrollments)
+                .FirstOrDefaultAsync(o => o.CourseOfferingId == courseOfferingId);
+            if (offering == null) throw new KeyNotFoundException("Course offering not found.");
+            return offering.Enrollments.Count >= offering.Capacity;
+        }
+        public async Task<bool> IsWithinSemesterAsync(int courseOfferingId, DateOnly date)
+        {
+            var offering = await _context.CourseOfferings
+                .Include(o => o.Semester)
+                .FirstOrDefaultAsync(o => o.CourseOfferingId == courseOfferingId);
+            if (offering == null) throw new KeyNotFoundException("Course offering not found.");
+            var semester = offering.Semester;
+            return date >= semester.StartDate && date <= semester.EndDate;
+        }
     }
 }

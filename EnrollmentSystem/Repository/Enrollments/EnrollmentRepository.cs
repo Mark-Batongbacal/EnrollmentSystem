@@ -15,94 +15,55 @@ namespace EnrollmentSystem.Repository.Enrollments
             _context = context;
         }
 
-        public async Task<Enrollment?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<Enrollment?> GetByIdAsync(int id)
         {
             return await _context.Enrollments
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.EnrollmentId == id, cancellationToken);
+                .FirstOrDefaultAsync(e => e.EnrollmentId == id);
         }
 
-        public async Task<IEnumerable<Enrollment>> GetAllAsync(CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Enrollment>> GetAllAsync()
         {
             return await _context.Enrollments
                 .AsNoTracking()
-                .ToListAsync(cancellationToken);
+                .ToListAsync();
         }
 
-        public async Task AddAsync(Enrollment enrollment, CancellationToken cancellationToken = default)
+        public async Task AddAsync(Enrollment enrollment)
         {
-            await _context.Enrollments.AddAsync(enrollment, cancellationToken);
-            await _context.SaveChangesAsync(cancellationToken);
+            await _context.Enrollments.AddAsync(enrollment);
+            await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Enrollment enrollment, CancellationToken cancellationToken = default)
+        public async Task UpdateAsync(Enrollment enrollment)
         {
             _context.Enrollments.Update(enrollment);
-            await _context.SaveChangesAsync(cancellationToken);
+            await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Enrollment enrollment, CancellationToken cancellationToken = default)
+        public async Task DeleteAsync(Enrollment enrollment)
         {
             _context.Enrollments.Remove(enrollment);
-            await _context.SaveChangesAsync(cancellationToken);
+            await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<bool> ExistsAsync(int id)
         {
             return await _context.Enrollments
-                .AnyAsync(e => e.EnrollmentId == id, cancellationToken);
+                .AnyAsync(e => e.EnrollmentId == id);
         }
 
-        public async Task<bool> AnyByCourseOfferingIdAsync(int courseOfferingId, CancellationToken cancellationToken = default)
+        public async Task<bool> AnyByCourseOfferingIdAsync(int courseOfferingId)
         {
             return await _context.Enrollments
-                .AnyAsync(e => e.CourseOfferingId == courseOfferingId, cancellationToken);
+                .AnyAsync(e => e.CourseOfferingId == courseOfferingId);
         }
 
-        public async Task<bool> AnyByStudentIdAsync(int studentId, CancellationToken cancellationToken = default)
+        public async Task<bool> AnyByStudentIdAsync(int studentId)
         {
             return await _context.Enrollments
-                .AnyAsync(e => e.StudentId == studentId, cancellationToken);
+                .AnyAsync(e => e.StudentId == studentId);
         }
 
-        public Task<Enrollment?> GetByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<Enrollment>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task AddAsync(Enrollment enrollment)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateAsync(Enrollment enrollment)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteAsync(Enrollment enrollment)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> ExistsAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> AnyByCourseOfferingIdAsync(int courseOfferingId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> AnyByStudentIdAsync(int studentId)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

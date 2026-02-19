@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EnrollmentSystem.Services.Enrollments
 {
-    public class EnrollmentService
+    public class EnrollmentService: IEnrollmentService
     {
         private readonly IEnrollmentRepository _enrollmentRepository;
         private readonly EnrollmentSystemContext _context;
