@@ -1,4 +1,4 @@
-﻿namespace EnrollmentSystem.Services.Student
+﻿namespace EnrollmentSystem.Services.Students
 {
     public class StudentService
     {
