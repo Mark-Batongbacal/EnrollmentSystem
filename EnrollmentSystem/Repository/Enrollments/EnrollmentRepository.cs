@@ -64,5 +64,45 @@ namespace EnrollmentSystem.Repository.Enrollments
             return await _context.Enrollments
                 .AnyAsync(e => e.StudentId == studentId, cancellationToken);
         }
+
+        public Task<Enrollment?> GetByIdAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<Enrollment>> GetAllAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task AddAsync(Enrollment enrollment)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task UpdateAsync(Enrollment enrollment)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteAsync(Enrollment enrollment)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> ExistsAsync(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> AnyByCourseOfferingIdAsync(int courseOfferingId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> AnyByStudentIdAsync(int studentId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

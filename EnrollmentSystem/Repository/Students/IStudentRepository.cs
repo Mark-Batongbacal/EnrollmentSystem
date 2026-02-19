@@ -8,8 +8,8 @@ namespace EnrollmentSystem.Repository.Students
         Task<IEnumerable<Student>> GetAllAsync();
 
         Task AddAsync(Student student);
-        void Update(Student student);
-        void Delete(Student student);
+        Task Update(Student student);
+        Task Delete(Student student);
 
         Task<bool> ExistsAsync(int id);
     }
