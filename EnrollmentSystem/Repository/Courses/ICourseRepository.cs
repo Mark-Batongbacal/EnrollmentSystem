@@ -4,13 +4,13 @@ namespace EnrollmentSystem.Repository.Courses
 {
     public interface ICourseRepository
     {
-        Task<Course?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-        Task<IEnumerable<Course>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<Course?> GetByIdAsync(int id);
+        Task<IEnumerable<Course>> GetAllAsync();
 
-        Task AddAsync(Course course, CancellationToken cancellationToken = default);
-        void Update(Course course);
-        Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+        Task AddAsync(Course course);
+        Task Update(Course course);
+        Task<bool> DeleteAsync(int id);
 
-        Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<bool> ExistsAsync(int id);
     }
 }

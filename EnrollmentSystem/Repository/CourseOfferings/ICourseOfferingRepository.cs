@@ -1,17 +1,19 @@
-﻿namespace EnrollmentSystem.Repository.CourseOfferings
+﻿using EnrollmentSystem.Models.Database;
+
+namespace EnrollmentSystem.Repository.CourseOfferings
 {
     public interface ICourseOfferingRepository
     {
-        Task<CourseOffering?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-        Task<IEnumerable<CourseOffering>> GetAllAsync(CancellationToken cancellationToken = default);
+        Task<CourseOffering?> GetByIdAsync(int id);
+        Task<IEnumerable<CourseOffering>> GetAllAsync();
 
-        Task AddAsync(CourseOffering offering, CancellationToken cancellationToken = default);
-        void Update(CourseOffering offering);
-        void Delete(CourseOffering offering);
+        Task AddAsync(CourseOffering offering);
+        Task Update(CourseOffering offering);
+        Task Delete(CourseOffering offering);
 
-        Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default);
+        Task<bool> ExistsAsync(int id);
 
-        Task<IEnumerable<CourseOffering>> GetByCourseIdAsync(Guid courseId, CancellationToken cancellationToken = default);
+        Task<IEnumerable<CourseOffering>> GetByCourseIdAsync(int courseId);
     }
 }
 
