@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using EnrollmentSystem.Models.Database;
 using EnrollmentSystem.Repository.CourseOfferings;
 using EnrollmentSystem.Repository.Enrollments;
+using EnrollmentSystem.Repository.Logs;
 using EnrollmentSystem.Services.Enrollments;
 using Moq;
 using Xunit;
@@ -15,6 +16,7 @@ namespace EnrollmentSystem.Test
         private readonly Mock<IEnrollmentRepository> _enrollmentRepo;
         private readonly Mock<ICourseOfferingRepository> _courseOfferingRepo;
         private readonly Mock<EnrollmentSystemContext> _contextMock;
+        private readonly Mock<ILogRepository> _logRepo;
         private readonly EnrollmentService _service;
 
         public EnrollmentServiceTests()
@@ -22,8 +24,9 @@ namespace EnrollmentSystem.Test
             _enrollmentRepo = new Mock<IEnrollmentRepository>();
             _courseOfferingRepo = new Mock<ICourseOfferingRepository>();
             _contextMock = new Mock<EnrollmentSystemContext>();
+            _logRepo = new Mock<ILogRepository>();
 
-            _service = new EnrollmentService( _courseOfferingRepo.Object, _enrollmentRepo.Object, _contextMock.Object);
+            _service = new EnrollmentService( _courseOfferingRepo.Object, _enrollmentRepo.Object, _logRepo.Object, _contextMock.Object);
         }
 
 

@@ -21,6 +21,7 @@ public partial class EnrollmentSystemContext : DbContext
     public virtual DbSet<CourseOffering> CourseOfferings { get; set; }
 
     public virtual DbSet<Enrollment> Enrollments { get; set; }
+    public virtual DbSet<Log> Logs { get; set; }
 
     public virtual DbSet<Instructor> Instructors { get; set; }
 
@@ -95,6 +96,18 @@ public partial class EnrollmentSystemContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Log>(entity =>
+        {
+            entity.HasKey(e => e.HistoryId);
+
+            entity.Property(e => e.ActionType)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+
+            entity.Property(e => e.ActionDate)
+                .HasColumnType("datetime");
         });
 
         modelBuilder.Entity<Student>(entity =>

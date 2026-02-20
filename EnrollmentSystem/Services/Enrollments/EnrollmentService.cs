@@ -1,6 +1,8 @@
 ﻿using EnrollmentSystem.Models.Database;
 using EnrollmentSystem.Repository.CourseOfferings;
 using EnrollmentSystem.Repository.Enrollments;
+using EnrollmentSystem.Repository.Logs;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.EntityFrameworkCore;
 
 namespace EnrollmentSystem.Services.Enrollments
@@ -9,16 +11,19 @@ namespace EnrollmentSystem.Services.Enrollments
     {
         private readonly IEnrollmentRepository _enrollmentRepository;
         private readonly ICourseOfferingRepository _courseOfferingRepo;
+        private readonly ILogRepository _log;
         private readonly EnrollmentSystemContext _context;
 
         public EnrollmentService(
             ICourseOfferingRepository courseOfferingRepository,
             IEnrollmentRepository enrollmentRepository,
+            ILogRepository log,
             EnrollmentSystemContext context)
         {
             _courseOfferingRepo = courseOfferingRepository;
             _enrollmentRepository = enrollmentRepository;
             _context = context;
+            _log = log;
         }
 
         public async Task<IEnumerable<Enrollment>> GetAllAsync()
@@ -45,6 +50,8 @@ namespace EnrollmentSystem.Services.Enrollments
             if (!await _courseOfferingRepo.IsWithinSemesterAsync(courseOfferingId, today))
                 throw new InvalidOperationException("Cannot enroll: semester has expired or not started yet.");
 
+
+
             // Create enrollment
             var enrollment = new Enrollment
             {
@@ -52,6 +59,16 @@ namespace EnrollmentSystem.Services.Enrollments
                 CourseOfferingId = courseOfferingId,
                 DateEnrolled = DateOnly.FromDateTime(DateTime.UtcNow)
             };
+
+            await _log.LogAsync(new Log
+            {
+                EnrollmentId = enrollment.EnrollmentId,
+                StudentId = enrollment.StudentId,
+                CourseOfferingId = enrollment.CourseOfferingId,
+                FinalGrade = enrollment.FinalGrade,
+                ActionType = "Student Enrolled",
+                ActionDate = DateTime.UtcNow
+            });
 
             await _enrollmentRepository.AddAsync(enrollment);
 
@@ -70,7 +87,18 @@ namespace EnrollmentSystem.Services.Enrollments
 
             enrollment.FinalGrade = grade;
 
+            
             await _enrollmentRepository.UpdateAsync(enrollment);
+
+            await _log.LogAsync(new Log
+            {
+                EnrollmentId = enrollment.EnrollmentId,
+                StudentId = enrollment.StudentId,
+                CourseOfferingId = enrollment.CourseOfferingId,
+                FinalGrade = enrollment.FinalGrade,
+                ActionType = "Grade Updated",
+                ActionDate = DateTime.UtcNow
+            });
 
             return true;
         }
@@ -81,6 +109,16 @@ namespace EnrollmentSystem.Services.Enrollments
 
             if (enrollment == null)
                 return false;
+
+            await _context.Logs.AddAsync(new Log
+            {
+                EnrollmentId = enrollment.EnrollmentId,
+                StudentId = enrollment.StudentId,
+                CourseOfferingId = enrollment.CourseOfferingId,
+                FinalGrade = enrollment.FinalGrade,
+                ActionType = "Enrollment Deleted",
+                ActionDate = DateTime.UtcNow
+            });
 
             await _enrollmentRepository.DeleteAsync(enrollment);
 
